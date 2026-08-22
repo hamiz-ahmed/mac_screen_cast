@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mac Screencast</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1><span class="flame">📡</span> Mac Screencast</h1>
+    <p class="tagline">Broadcast your Mac screen to any browser on your Wi-Fi</p>
+  </header>
+
+  <section class="hero">
+    <div class="url-row">
+      <span id="watchUrl" class="url">…</span>
+      <button id="copyUrl" class="ghost">Copy</button>
+    </div>
+    <p class="hint">Open this on any device — laptop, phone, or a Fire TV (type it into the Silk browser).</p>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Broadcast</h2></div>
+    <div class="controls">
+      <label class="field" id="displayField">
+        <span>Screen</span>
+        <select id="displaySelect"></select>
+      </label>
+      <label class="field">
+        <span>Quality</span>
+        <select id="qualitySelect">
+          <option value="smooth">Light · 720p</option>
+          <option value="balanced" selected>Balanced · 1080p</option>
+          <option value="sharp">High · 1080p60</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Fit</span>
+        <select id="fitSelect">
+          <option value="wide" selected>Fill TV · 16:9 crop</option>
+          <option value="full">Whole screen · bars on TV</option>
+        </select>
+      </label>
+    </div>
+    <label class="check">
+      <input type="checkbox" id="muteMac" checked />
+      Mute Mac speakers while broadcasting (sound plays on the viewer)
+    </label>
+    <div class="btn-row">
+      <button id="startBtn" class="primary">▶&nbsp; Start Broadcasting</button>
+      <button id="stopBtn" class="stop-btn" disabled>⏹&nbsp; Stop</button>
+    </div>
+    <div id="permBox" class="perm hidden">
+      This app needs the macOS <b>Screen Recording</b> permission.
+      <button id="permBtn" class="ghost">Open System Settings</button>
+      <span class="perm-note">Enable it there, then quit and reopen the app.</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Movies</h2></div>
+    <p class="hint">Movies play far smoother served as a file — full quality, buffered, with sound.</p>
+    <div class="movie-row">
+      <button id="chooseBtn" class="ghost">Choose video…</button>
+      <span id="movieName" class="movie-name">No file chosen</span>
+    </div>
+    <div class="url-row small">
+      <span id="playerUrl" class="url">…</span>
+      <button id="copyPlayerUrl" class="ghost">Copy</button>
+    </div>
+  </section>
+
+  <footer>
+    <div id="status" class="status">Starting…</div>
+  </footer>
+
+  <script src="../../node_modules/mp4-muxer/build/mp4-muxer.js"></script>
+  <script src="encoder.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

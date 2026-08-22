@@ -1,0 +1,36 @@
+{
+  "name": "mac_screen_cast",
+  "productName": "Mac Screencast",
+  "version": "0.2.0",
+  "description": "Broadcast your Mac screen to any browser on your Wi-Fi — laptops, phones, or a Fire TV's Silk browser. Completely free.",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "license": "MIT",
+  "author": "Hamiz Ahmed",
+  "build": {
+    "appId": "com.hamiz.macscreencast",
+    "productName": "Mac Screencast",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": "dmg",
+      "identity": null,
+      "icon": "build/icon.icns"
+    }
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "mp4-muxer": "^5.2.2",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.3"
+  }
+}

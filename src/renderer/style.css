@@ -1,0 +1,226 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #16181d;
+  --panel: #1f2229;
+  --panel-2: #262a33;
+  --text: #e8eaf0;
+  --muted: #9aa1af;
+  --accent: #ff8b3d;
+  --accent-dim: #b35a1f;
+  --good: #4cd964;
+  --bad: #ff5d5d;
+  --radius: 10px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  padding: 20px 22px;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 100vh;
+}
+
+header h1 {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.flame { font-size: 18px; }
+.tagline {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+section {
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.section-head h2 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.hero {
+  border: 1px solid var(--accent-dim);
+}
+.url-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.url {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--accent);
+  user-select: text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.url-row.small .url {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.url-row.small { margin-top: 4px; }
+.hero .hint { margin: 8px 0 0; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.controls .field { min-width: 130px; }
+.field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.field span {
+  font-size: 11px;
+  color: var(--muted);
+}
+select {
+  background: var(--panel-2);
+  border: 1px solid #3a3f4b;
+  border-radius: 8px;
+  color: var(--text);
+  padding: 7px 8px;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+
+button {
+  font-family: inherit;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.ghost {
+  background: var(--panel-2);
+  color: var(--muted);
+  padding: 6px 12px;
+}
+.ghost:hover { color: var(--text); }
+.primary {
+  width: 100%;
+  background: var(--accent);
+  color: #1a1206;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 13px;
+  border-radius: var(--radius);
+  transition: filter 0.15s;
+}
+.primary:hover { filter: brightness(1.08); }
+.primary:disabled { filter: saturate(0.3) brightness(0.7); cursor: default; }
+
+.btn-row { display: flex; gap: 10px; }
+.btn-row .primary { flex: 2; }
+.stop-btn {
+  flex: 1;
+  background: var(--bad);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 13px;
+  border-radius: var(--radius);
+}
+.stop-btn:disabled { opacity: 0.35; cursor: default; }
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+.check input { accent-color: var(--accent); }
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.movie-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.movie-name {
+  flex: 1;
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.movie-name.chosen { color: var(--text); font-weight: 500; }
+
+.perm {
+  margin-top: 12px;
+  background: #33261a;
+  border: 1px solid #6b4a26;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+.perm-note { color: var(--muted); font-size: 11.5px; }
+.hidden { display: none !important; }
+
+footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.status {
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 18px;
+}
+.status.live { color: var(--good); }
+.status.error { color: var(--bad); }
+.manual {
+  font-size: 11.5px;
+  color: var(--muted);
+  user-select: text;
+}
+.manual b { color: var(--text); font-weight: 600; }

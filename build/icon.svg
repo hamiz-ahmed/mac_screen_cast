@@ -1,0 +1,61 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="100" y1="100" x2="924" y2="924">
+      <stop offset="0" stop-color="#14532D"/>
+      <stop offset="0.5" stop-color="#16A34A"/>
+      <stop offset="1" stop-color="#34D399"/>
+    </linearGradient>
+    <radialGradient id="topGlow" gradientUnits="userSpaceOnUse" cx="512" cy="60" r="720">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.30"/>
+      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="screenFill" gradientUnits="userSpaceOnUse" x1="260" y1="300" x2="780" y2="660">
+      <stop offset="0" stop-color="#059669"/>
+      <stop offset="0.55" stop-color="#65D46E"/>
+      <stop offset="1" stop-color="#D9F99D"/>
+    </linearGradient>
+    <clipPath id="screenClip">
+      <path d="M 430 660 L 736 660 A 44 44 0 0 0 780 616 L 780 344 A 44 44 0 0 0 736 300 L 304 300 A 44 44 0 0 0 260 344 L 260 490 A 170 170 0 0 1 430 660 Z"/>
+    </clipPath>
+    <filter id="screenShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="26" flood-color="#000000" flood-opacity="0.38"/>
+    </filter>
+    <filter id="playShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#064E3B" flood-opacity="0.35"/>
+    </filter>
+    <filter id="waveGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feDropShadow dx="0" dy="0" stdDeviation="14" flood-color="#BBF7D0" flood-opacity="0.85"/>
+    </filter>
+  </defs>
+
+  <!-- macOS squircle background -->
+  <rect x="100" y="100" width="824" height="824" rx="184" fill="url(#bg)"/>
+  <rect x="100" y="100" width="824" height="824" rx="184" fill="url(#topGlow)"/>
+  <rect x="106" y="106" width="812" height="812" rx="180" fill="none" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="6"/>
+
+  <!-- screen with a concave notch at the bottom-left for the cast waves -->
+  <g filter="url(#screenShadow)">
+    <path d="M 430 660 L 736 660 A 44 44 0 0 0 780 616 L 780 344 A 44 44 0 0 0 736 300 L 304 300 A 44 44 0 0 0 260 344 L 260 490 A 170 170 0 0 1 430 660 Z"
+          fill="url(#screenFill)"/>
+  </g>
+
+  <!-- glass reflection streaks -->
+  <g clip-path="url(#screenClip)">
+    <polygon points="360,300 500,300 280,660 180,660" fill="#FFFFFF" opacity="0.16"/>
+    <polygon points="545,300 600,300 380,660 330,660" fill="#FFFFFF" opacity="0.10"/>
+  </g>
+
+  <!-- bezel -->
+  <path d="M 430 660 L 736 660 A 44 44 0 0 0 780 616 L 780 344 A 44 44 0 0 0 736 300 L 304 300 A 44 44 0 0 0 260 344 L 260 490 A 170 170 0 0 1 430 660 Z"
+        fill="none" stroke="#FFFFFF" stroke-opacity="0.95" stroke-width="14"/>
+
+  <!-- play glyph -->
+  <path d="M 488 418 L 488 542 L 596 480 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="22" stroke-linejoin="round" filter="url(#playShadow)"/>
+
+  <!-- cast waves radiating from the notch -->
+  <g filter="url(#waveGlow)">
+    <path d="M 260 608 A 52 52 0 0 1 312 660 L 260 660 Z" fill="#FFFFFF"/>
+    <path d="M 376 660 A 116 116 0 0 0 260 544" fill="none" stroke="#FFFFFF" stroke-width="42" stroke-linecap="round"/>
+  </g>
+</svg>
