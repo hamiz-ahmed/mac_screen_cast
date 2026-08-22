@@ -10,6 +10,18 @@ Broadcast your Mac screen — with system audio — to **any browser on your Wi-
 - **Movie mode**: serve an MP4 directly to viewers — full quality, seekable, with sound.
 - **Honest status line**: `Broadcasting with sound · 1 watching · 2.5 Mb/s` means data is genuinely flowing.
 
+## Install on Mac (no build needed)
+
+1. Download the latest `Mac Screencast-<version>-arm64.dmg` from the [Releases page](../../releases).
+2. Open the `.dmg` and drag **Mac Screencast** into **Applications**.
+3. First launch only — the build is unsigned, so macOS will warn you:
+   - Right-click **Mac Screencast.app** → **Open** → **Open**.
+   - If it's still blocked: **System Settings → Privacy & Security → Open Anyway**, or run:
+     ```bash
+     xattr -cr "/Applications/Mac Screencast.app"
+     ```
+4. Click **▶ Start Broadcasting** and grant the **Screen Recording** permission when asked, then quit and reopen the app once.
+
 ## Requirements
 
 - macOS (screen capture uses the macOS Screen Recording permission)
