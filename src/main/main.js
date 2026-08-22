@@ -35,8 +35,8 @@ function watchUrl() {
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 480,
-    height: 640,
+    width: 660,
+    height: 780,
     minWidth: 420,
     minHeight: 540,
     title: 'Mac Screencast',
