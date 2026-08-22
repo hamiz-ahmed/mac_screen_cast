@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld('api', {
   setDisplay: (id) => ipcRenderer.invoke('set-display', id),
   setWantAudio: (v) => ipcRenderer.invoke('set-want-audio', v),
   setSystemMute: (v) => ipcRenderer.invoke('set-system-mute', v),
+  setBroadcasting: (v) => ipcRenderer.invoke('set-broadcasting', v),
   pickVideo: () => ipcRenderer.invoke('pick-video'),
   openScreenSettings: () => ipcRenderer.invoke('open-screen-settings'),
+  onPowerResumed: (cb) => ipcRenderer.on('power-resumed', () => cb()),
 });

@@ -31,6 +31,8 @@ const state = {
   starting: false,
   rebuilding: false,
   stream: null,
+  rawAudioTrack: null,
+  hadAudio: false,
   ws: null,
   viewers: 0,
   watchdogTimer: null,
@@ -55,6 +57,11 @@ function stopCaptureTracks() {
   if (state.stream) {
     for (const t of state.stream.getTracks()) t.stop();
     state.stream = null;
+  }
+  // the raw loopback track lives outside state.stream once stabilized
+  if (state.rawAudioTrack) {
+    state.rawAudioTrack.stop();
+    state.rawAudioTrack = null;
   }
   lastCaptureStop = Date.now();
 }
@@ -127,12 +134,21 @@ async function acquireCapture(preset) {
     return null;
   };
 
+  // Losing audio to one transient freeze silences the whole session, so fight
+  // for the with-audio capture before settling for video-only.
   let stream = null;
   let sawPermissionError = false;
-  try {
-    stream = await attempt(true);
-  } catch (err) {
-    sawPermissionError = err && err.name === 'NotAllowedError';
+  for (let tries = 0; tries < 3 && !stream; tries += 1) {
+    try {
+      stream = await attempt(true);
+    } catch (err) {
+      sawPermissionError = err && err.name === 'NotAllowedError';
+      if (sawPermissionError) break;
+    }
+    if (!stream && tries < 2) {
+      setStatus('Capture not delivering frames — retrying with sound…');
+      await sleep(2500);
+    }
   }
   if (!stream) {
     setStatus('Rebuilding capture (video-only)…');
@@ -159,15 +175,26 @@ async function acquireCapture(preset) {
 // which would starve the muxer; routing through WebAudio with a constant
 // source keeps audio frames flowing no matter what.
 let audioCtx = null;
+let audioGraph = null; // previous session's nodes, torn down on rebuild
 function stabilizeAudioTrack(stream) {
   audioCtx = audioCtx || new AudioContext({ sampleRate: 48000, latencyHint: 'playback' });
   audioCtx.resume().catch(() => {});
+  if (audioGraph) {
+    try {
+      audioGraph.source.disconnect();
+      audioGraph.keepAlive.stop();
+      audioGraph.keepAlive.disconnect();
+    } catch {}
+    audioGraph = null;
+  }
   const dest = audioCtx.createMediaStreamDestination();
-  audioCtx.createMediaStreamSource(stream).connect(dest);
+  const source = audioCtx.createMediaStreamSource(stream);
+  source.connect(dest);
   const keepAlive = audioCtx.createConstantSource();
   keepAlive.offset.value = 0;
   keepAlive.connect(dest);
   keepAlive.start();
+  audioGraph = { source, keepAlive };
   return dest.stream.getAudioTracks()[0];
 }
 
@@ -332,18 +359,47 @@ async function rebuildBroadcast() {
   state.rebuilding = false;
 }
 
+// A rebuild that lost audio shouldn't stay silent forever: retry a few full
+// rebuilds in the background — each one fights for the with-audio capture.
+let audioRecoveryTimer = null;
+let audioRecoveryTries = 0;
+function scheduleAudioRecovery() {
+  if (audioRecoveryTimer || audioRecoveryTries >= 3) return;
+  audioRecoveryTimer = setTimeout(() => {
+    audioRecoveryTimer = null;
+    if (!state.broadcasting || state.rebuilding) return;
+    if (/mp4a|opus/.test(ScreenEncoder.currentMime())) return; // audio is back
+    audioRecoveryTries += 1;
+    rebuildBroadcast();
+  }, 60000);
+}
+
 // --- Engine wiring ---------------------------------------------------------
 
 async function startEngine(preset) {
   const hasAudio = state.stream.getAudioTracks().length > 0;
   if (hasAudio) {
+    const raw = state.stream.getAudioTracks()[0];
     try {
       state.stream = new MediaStream([
         state.stream.getVideoTracks()[0],
         stabilizeAudioTrack(state.stream),
       ]);
+      state.rawAudioTrack = raw;
+      // The stabilizer masks a dead source with silence, so watch the raw
+      // track: if the loopback ends, rebuild to get sound back. (stop() does
+      // not fire 'ended', so our own teardown never triggers this.)
+      raw.addEventListener('ended', () => {
+        if (state.broadcasting && !state.rebuilding) rebuildBroadcast();
+      });
     } catch {}
     if (el.muteMac.checked) api.setSystemMute(true);
+    state.hadAudio = true;
+    audioRecoveryTries = 0;
+    clearTimeout(audioRecoveryTimer);
+    audioRecoveryTimer = null;
+  } else if (state.hadAudio) {
+    scheduleAudioRecovery();
   }
   state.stream.getVideoTracks()[0].addEventListener('ended', () => {
     if (state.broadcasting && !state.rebuilding) rebuildBroadcast();
@@ -365,6 +421,7 @@ async function startEngine(preset) {
 async function startBroadcast() {
   if (state.starting || state.broadcasting) return;
   state.starting = true;
+  state.hadAudio = false;
   el.startBtn.disabled = true;
   try {
     await api.setDisplay(Number(el.displaySelect.value));
@@ -380,6 +437,7 @@ async function startBroadcast() {
     ScreenEncoder.stopCollectingFragments();
 
     state.broadcasting = true;
+    api.setBroadcasting(true);
     el.stopBtn.disabled = false;
     setStatus('Broadcasting — open the URL above on any device.', 'live');
     armWatchdog();
@@ -387,6 +445,7 @@ async function startBroadcast() {
     ScreenEncoder.stop();
     stopCaptureTracks();
     api.setSystemMute(false);
+    api.setBroadcasting(false);
     setStatus(err.message, 'error');
     el.startBtn.disabled = false;
   } finally {
@@ -399,12 +458,16 @@ async function stopBroadcast() {
   state.broadcasting = false;
   state.rebuilding = false;
   clearInterval(state.watchdogTimer);
+  clearTimeout(audioRecoveryTimer);
+  audioRecoveryTimer = null;
+  audioRecoveryTries = 0;
   ScreenEncoder.stop();
   stopCaptureTracks();
   el.startBtn.disabled = false;
   el.stopBtn.disabled = true;
   setStatus('Stopped.');
   api.setSystemMute(false);
+  api.setBroadcasting(false);
 }
 
 // --- Movies ----------------------------------------------------------------
@@ -458,6 +521,12 @@ async function init() {
   el.startBtn.addEventListener('click', startBroadcast);
   el.stopBtn.addEventListener('click', stopBroadcast);
   el.chooseBtn.addEventListener('click', chooseMovie);
+
+  // The capture never survives a system sleep; rebuild as soon as we wake
+  // instead of waiting for the stall watchdog.
+  api.onPowerResumed(() => {
+    if (state.broadcasting && !state.rebuilding) rebuildBroadcast();
+  });
 
   connectStreamWs();
   setStatus('Ready.');

@@ -21,9 +21,11 @@ function updateSoundHint() {
 
 // Any interaction is a user gesture that unlocks sound. Fire TV remotes
 // drive a virtual cursor in Silk (clicks, not keys), so listen for both.
+let soundUnlocked = false; // sound has played unmuted at least once
 function unlockSound() {
   if (video.muted) {
     video.muted = false;
+    soundUnlocked = true;
     video.play().catch(() => {});
     updateSoundHint();
   }
@@ -37,12 +39,37 @@ async function tryPlay() {
   try {
     video.muted = false;
     await video.play();
+    soundUnlocked = true;
   } catch (e) {
     video.muted = true;
     video.play().catch(() => {});
   }
   updateSoundHint();
 }
+
+// Once the user has unlocked audio, win it back automatically after every
+// reconnect instead of demanding another remote press — sticky user
+// activation usually allows it; the sound hint reappears only if it can't.
+let unmuteTimer = null;
+function restoreSound() {
+  if (!soundUnlocked || !video.muted || unmuteTimer) return;
+  let tries = 0;
+  unmuteTimer = setInterval(() => {
+    tries += 1;
+    if (!video.muted || tries > 5) {
+      clearInterval(unmuteTimer);
+      unmuteTimer = null;
+      updateSoundHint();
+      return;
+    }
+    video.muted = false;
+    video.play().catch(() => {
+      video.muted = true;
+    });
+    updateSoundHint();
+  }, 800);
+}
+video.addEventListener('playing', restoreSound);
 
 // ---------------------------- MSE playback ---------------------------------
 

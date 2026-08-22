@@ -9,7 +9,7 @@ const { WebSocketServer } = require('ws');
 //   WS  /stream      -> broadcast relay: the app (sender) pushes fMP4 chunks
 //                       (binary) plus JSON control messages; both are fanned
 //                       out to every connected viewer.
-function startServer({ preferredPort = 8080, viewerDir }) {
+function startServer({ preferredPort = 8080, viewerDir, onConsumers }) {
   const app = express();
   // Stale cached viewer pages silently break streaming (Silk caches hard)
   app.use((_req, res, next) => {
@@ -65,12 +65,17 @@ function startServer({ preferredPort = 8080, viewerDir }) {
 
   let sender = null;
   const viewers = new Set(); // ws viewers; ws.aligned = receiving current generation
+  const players = new Set(); // movie pages, connected for presence only
 
   const safeSend = (ws, obj) => {
     if (ws && ws.readyState === ws.OPEN) ws.send(JSON.stringify(obj));
   };
-  const tellSenderViewerCount = () =>
+  // Also the choke point for "does anyone need the Mac awake?" — a movie page
+  // counts (even paused) though it isn't a broadcast viewer.
+  const tellSenderViewerCount = () => {
     safeSend(sender, { type: 'viewers', n: viewers.size + liveResponses.size });
+    if (onConsumers) onConsumers(viewers.size + liveResponses.size + players.size);
+  };
 
   // --- Generation store ----------------------------------------------------
   // A "generation" is one fMP4 timeline: init segment (ftyp+moov) followed by
@@ -213,6 +218,16 @@ function startServer({ preferredPort = 8080, viewerDir }) {
           } catch {}
         }
         liveResponses.clear();
+      });
+      return;
+    }
+
+    if (role === 'player') {
+      players.add(ws);
+      tellSenderViewerCount();
+      ws.on('close', () => {
+        players.delete(ws);
+        tellSenderViewerCount();
       });
       return;
     }

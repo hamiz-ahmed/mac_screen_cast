@@ -7,12 +7,74 @@ function showMsg(text) {
 }
 
 video.addEventListener('error', () => {
+  const code = video.error && video.error.code;
+  if (code === 2) {
+    // network hiccup (server restart, Wi-Fi blip) — self-heal, don't lecture
+    setTimeout(recover, 1500);
+    return;
+  }
   showMsg(
     'Could not play this video. MP4 files (H.264) work best on the Fire Stick — ' +
       'convert the file on your Mac and try again.'
   );
 });
 video.addEventListener('playing', () => msg.classList.remove('show'));
+
+// ---- Presence + self-healing ----------------------------------------------
+// The socket tells the Mac a movie page is open — the app holds a keep-awake
+// assertion while any consumer is connected, so a paused film can't let the
+// Mac idle-sleep. Its close/open also signals "Mac unreachable" / "Mac is
+// back".
+let presenceWs = null;
+function connectPresence() {
+  presenceWs = new WebSocket('ws://' + location.host + '/stream?role=player');
+  presenceWs.onopen = () => {
+    if (!video.paused && Date.now() - lastAdvance > 4000) recover();
+  };
+  presenceWs.onclose = () => {
+    presenceWs = null;
+    setTimeout(connectPresence, 2000);
+  };
+  presenceWs.onerror = () => {
+    try {
+      presenceWs.close();
+    } catch (e) {}
+  };
+}
+
+// Reload the source and seek back to where we were — the page never needs a
+// manual refresh to survive a server outage.
+function recover() {
+  const at = Math.max(0, (video.currentTime || lastTime) - 0.5);
+  showMsg('Reconnecting…');
+  video.src = '/media?t=' + Date.now();
+  video.addEventListener('loadedmetadata', function seekBack() {
+    video.removeEventListener('loadedmetadata', seekBack);
+    try {
+      video.currentTime = at;
+    } catch (e) {}
+  });
+  video.play().catch(() => {});
+}
+
+// Watchdog: playing but not progressing for ~8 s means the stream is dead
+let lastTime = 0;
+let lastAdvance = Date.now();
+setInterval(() => {
+  if (video.paused) {
+    lastAdvance = Date.now();
+    return;
+  }
+  if (video.currentTime !== lastTime) {
+    lastTime = video.currentTime;
+    lastAdvance = Date.now();
+  } else if (Date.now() - lastAdvance > 8000) {
+    lastAdvance = Date.now();
+    recover();
+  }
+}, 2000);
+
+connectPresence();
 
 // Fire TV remote support: play/pause and d-pad keys where Silk passes them through
 document.addEventListener('keydown', (e) => {

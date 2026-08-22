@@ -9,6 +9,8 @@ const {
   systemPreferences,
   shell,
   dialog,
+  powerSaveBlocker,
+  powerMonitor,
 } = require('electron');
 const path = require('path');
 const os = require('os');
@@ -33,6 +35,32 @@ function watchUrl() {
   return `http://${bestLocalIp()}:${serverPort}/`;
 }
 
+// Keep the Mac awake while it has work. Broadcasting needs the display lit —
+// an asleep display stops delivering capture frames. Serving viewers or a
+// movie (even one sitting paused) needs the system up, but the display may
+// sleep. Without these assertions an idle Mac sleeps mid-stream and a TV
+// can't wake it back up.
+let displayBlockerId = null;
+let suspensionBlockerId = null;
+
+function keepDisplayAwake(on) {
+  if (on && displayBlockerId === null) {
+    displayBlockerId = powerSaveBlocker.start('prevent-display-sleep');
+  } else if (!on && displayBlockerId !== null) {
+    powerSaveBlocker.stop(displayBlockerId);
+    displayBlockerId = null;
+  }
+}
+
+function keepSystemAwake(on) {
+  if (on && suspensionBlockerId === null) {
+    suspensionBlockerId = powerSaveBlocker.start('prevent-app-suspension');
+  } else if (!on && suspensionBlockerId !== null) {
+    powerSaveBlocker.stop(suspensionBlockerId);
+    suspensionBlockerId = null;
+  }
+}
+
 function createWindow() {
   win = new BrowserWindow({
     width: 660,
@@ -45,6 +73,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      backgroundThrottling: false,
     },
   });
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
@@ -90,10 +119,17 @@ app.whenReady().then(async () => {
   serverCtl = await startServer({
     preferredPort: 8080,
     viewerDir: path.join(__dirname, '..', 'viewer'),
+    onConsumers: (n) => keepSystemAwake(n > 0),
   });
   serverPort = serverCtl.port;
 
   createWindow();
+
+  // After a sleep the capture is dead; tell the renderer immediately instead
+  // of waiting for its stall watchdog.
+  powerMonitor.on('resume', () => {
+    if (win && !win.isDestroyed()) win.webContents.send('power-resumed');
+  });
 });
 
 app.on('window-all-closed', () => {
@@ -120,6 +156,10 @@ ipcMain.handle('set-display', (_e, id) => {
 
 ipcMain.handle('set-want-audio', (_e, v) => {
   wantAudio = Boolean(v);
+});
+
+ipcMain.handle('set-broadcasting', (_e, v) => {
+  keepDisplayAwake(Boolean(v));
 });
 
 // Silence the Mac's speakers while viewers carry the sound; always restored

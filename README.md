@@ -91,6 +91,7 @@ src/
 - **"Screen capture is stuck"** — a macOS quirk after rapid stop/start; wait ~10 s and press Start again (the app also self-heals mid-broadcast).
 - **macOS firewall prompt** — allow it; viewers must reach the Mac over the network.
 - **DRM content (Netflix/Prime)** — captures black; a macOS restriction affecting every tool.
+- **Closing the MacBook lid stops everything** — macOS always sleeps a laptop on battery when the lid closes, and no app can prevent it. Keep the lid open while casting (the app keeps the Mac and its display awake by itself), or use clamshell mode: plugged into power with an external display. 
 
 ## Contributing
 
