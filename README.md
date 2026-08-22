@@ -49,6 +49,18 @@ This produces `dist/Mac Screencast-<version>-arm64.dmg` — a double-clickable, 
 3. Open the URL on any device on the same Wi-Fi. Playback starts a few seconds behind live (it's buffered for smoothness, like YouTube).
 4. Sound: press any key / tap / press OK on a TV remote once if it starts muted. The Mac's own speakers mute while broadcasting (checkbox).
 
+## Watching on a TV (or anything with a browser)
+
+Any device with a web browser can be a viewer — there's nothing to install on it. Make sure it's on the **same Wi-Fi as the Mac**, open its browser, and type the watch URL the app shows (e.g. `http://192.168.178.80:8080`), including the `:8080` part.
+
+- **Fire TV / Firestick** — open the **Silk Browser** (free from the Amazon Appstore under "Internet"), type the URL, and playback starts. Press **OK** on the remote once if it starts muted.
+- **Android TV / Google TV (Chromecast)** — no browser comes preinstalled; install one from the Play Store (e.g. TV Bro), then open the URL.
+- **Smart TVs (Samsung, LG, …)** — use the TV's built-in web browser with the same URL.
+- **Game consoles** — Xbox has Edge built in; PS4/PS5 can reach a browser via the user guide/manual link. Same URL.
+- **Phones, tablets, laptops** — any browser (Safari, Chrome, Firefox), same URL.
+
+Tip: for films, open `http://<mac-ip>:8080/player` on the TV instead and use Movie mode — full quality and seekable (see below).
+
 ## Movies
 
 For films, use the **Movies** section instead of broadcasting: pick an MP4, open the player link (`…/player`) on the viewing device — full quality, buffered, seekable, with sound. Convert MKV/AVI to MP4 with the free [HandBrake](https://handbrake.fr).
