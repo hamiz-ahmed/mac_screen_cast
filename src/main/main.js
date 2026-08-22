@@ -48,6 +48,21 @@ function createWindow() {
     },
   });
   win.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
+
+  // Size the window to the page so it opens without a scrollbar, however
+  // tall the content renders on this machine.
+  win.webContents.once('did-finish-load', async () => {
+    try {
+      const contentHeight = await win.webContents.executeJavaScript(
+        'document.documentElement.scrollHeight'
+      );
+      const maxHeight = screen.getDisplayMatching(win.getBounds()).workArea.height - 24;
+      const [contentWidth] = win.getContentSize();
+      win.setContentSize(contentWidth, Math.min(contentHeight, maxHeight));
+    } catch {
+      // Keep the default size; scrolling still works.
+    }
+  });
 }
 
 app.whenReady().then(async () => {
