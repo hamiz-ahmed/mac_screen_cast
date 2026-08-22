@@ -6,7 +6,7 @@
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
+    "dist": "electron-builder && sh scripts/shrink-dmg.sh"
   },
   "license": "MIT",
   "author": "Hamiz Ahmed",
@@ -16,6 +16,9 @@
     "files": [
       "src/**/*",
       "package.json"
+    ],
+    "electronLanguages": [
+      "en"
     ],
     "mac": {
       "category": "public.app-category.utilities",
